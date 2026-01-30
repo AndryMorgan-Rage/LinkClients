@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
+// Importe la nouvelle vue
+import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,12 +11,16 @@ const router = createRouter({
             name: 'login',
             component: LoginView
         },
-        /*{
+        {
+            path: '/register',
+            name: 'register',
+            component: RegisterView
+        },
+        {
             path: '/clients',
             name: 'clients',
-            // On crée ce composant juste après
             component: () => import('../views/ClientsView.vue')
-        }*/
+        }
     ]
 })
 
