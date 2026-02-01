@@ -7,17 +7,41 @@ const name = ref('')
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
+const errorMessage = ref('')
 
 const handleRegister = async () => {
   isLoading.value = true
+  errorMessage.value = ''
 
-  // Simulation d'enregistrement
-  setTimeout(() => {
-    console.log("Compte créé :", { name: name.value, email: email.value })
-    alert("Compte créé avec succès ! Vous pouvez maintenant vous connecter.")
+  try {
+    // Connexion réelle au serveur VS Code
+    const response = await fetch('http://localhost:3000/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fullname: name.value,
+        email: email.value,
+        password: password.value
+      })
+    })
+
+    const data = await response.json()
+
+    if (response.ok) {
+      alert("Compte créé avec succès ! Connectez-vous.")
+      router.push('/') // Redirection vers le login
+    } else {
+      // On récupère l'erreur envoyée par Node.js
+      errorMessage.value = data.error || "Une erreur est survenue lors de l'inscription."
+    }
+  } catch (err) {
+    errorMessage.value = "Impossible de contacter le serveur backend."
+    console.error("Erreur Fetch:", err)
+  } finally {
     isLoading.value = false
-    router.push('/') // Redirection vers le login
-  }, 1500)
+  }
 }
 </script>
 
@@ -29,6 +53,10 @@ const handleRegister = async () => {
         <div class="mb-8">
           <h2 class="text-2xl font-bold text-gray-800">Créer un compte</h2>
           <p class="text-gray-400 text-sm">Rejoignez la plateforme LinkClients</p>
+        </div>
+
+        <div v-if="errorMessage" class="mb-4 p-3 text-sm text-red-600 bg-red-50 rounded-lg border border-red-200">
+          {{ errorMessage }}
         </div>
 
         <form @submit.prevent="handleRegister" class="space-y-4">
