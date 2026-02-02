@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
-// Importe la nouvelle vue
 import RegisterView from '../views/RegisterView.vue'
 
 const router = createRouter({
@@ -8,6 +7,10 @@ const router = createRouter({
     routes: [
         {
             path: '/',
+            redirect: '/login' // Redirige automatiquement l'accueil vers le login
+        },
+        {
+            path: '/login', // Ajout explicite du chemin /login
             name: 'login',
             component: LoginView
         },
