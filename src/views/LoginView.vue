@@ -6,8 +6,8 @@
 
       <div class="relative z-40 w-full max-w-md">
         <div class="mb-6">
-          <h1 class="text-4xl font-extrabold text-white mb-2">LinkClients</h1>
-          <p class="text-blue-200/70 text-sm">Sélectionnez votre profil pour vous connecter.</p>
+          <h1 class="text-4xl font-extrabold text-white mb-2 text-left">LinkClients</h1>
+          <p class="text-blue-200/70 text-sm text-left">Sélectionnez votre profil pour vous connecter.</p>
         </div>
 
         <div class="flex bg-white/10 p-1 rounded-2xl mb-8 border border-white/10">
@@ -26,7 +26,7 @@
 
         <form @submit.prevent="handleLogin" class="space-y-6">
           <div>
-            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest">
+            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest text-left">
               Email {{ currentEmailHint }}
             </label>
             <input
@@ -39,7 +39,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest">Mot de passe</label>
+            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest text-left">Mot de passe</label>
             <input
                 v-model="password"
                 type="password"
@@ -77,7 +77,7 @@
         </div>
       </transition-group>
 
-      <div class="absolute bottom-20 left-20 z-20 text-white max-w-lg">
+      <div class="absolute bottom-20 left-20 z-20 text-white max-w-lg text-left">
         <transition name="slide" mode="out-in">
           <div :key="currentImage">
             <h3 class="text-4xl font-bold mb-4 drop-shadow-lg">{{ slogans[currentImage].title }}</h3>
@@ -113,10 +113,7 @@ const currentEmailHint = computed(() => {
 })
 
 const currentPlaceholder = computed(() => {
-  if (selectedRole.value === 'prestataire') return 'morgan@novity.com'
-  if (selectedRole.value === 'client') return 'nomduclient@gmail.com'
-  if (selectedRole.value === 'entreprise') return 'nomdeEntreprise@gmail.com'
-  return 'votre@email.com'
+  return selectedRole.value + '@example.com'
 })
 
 const currentRoleLabel = computed(() => {
@@ -141,7 +138,6 @@ onMounted(() => {
   }, 6000)
 })
 
-// --- MODIFICATION ICI : REDIRECTION UNIQUE ---
 const handleLogin = async () => {
   try {
     const res = await fetch('http://localhost:3000/api/login', {
@@ -149,24 +145,30 @@ const handleLogin = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         email: email.value,
-        password: password.value,
-        role: selectedRole.value
-      })
-    })
-
-    const data = await res.json()
+        password: password.value
+      }) // CORRIGÉ : On envoie les refs email et password
+    });
+    const data = await res.json();
 
     if (res.ok) {
-      localStorage.setItem('user', JSON.stringify(data))
-      // FORCE LA REDIRECTION VERS TA PAGE GESTION CLIENTS
-      router.push('/clients')
+      localStorage.setItem('user', JSON.stringify(data));
+
+      // Redirection dynamique basée sur la réponse du serveur
+      if (data.role === 'prestataire') {
+        router.push('/prestataire');
+      } else if (data.role === 'client') {
+        router.push('/client');
+      } else if (data.role === 'entreprise') {
+        router.push('/entreprise');
+      }
     } else {
-      alert(data.error || "Identifiants invalides")
+      alert(data.error || "Identifiants incorrects.");
     }
   } catch (err) {
-    alert("Vérifiez que votre backend est bien lancé.")
+    alert("Erreur de connexion au serveur");
+    console.error(err);
   }
-}
+};
 </script>
 
 <style scoped>

@@ -1,5 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const user = JSON.parse(localStorage.getItem('user') || '{}')
 
 const clients = ref([])
 const selectedClient = ref(null)
@@ -14,6 +18,16 @@ const newClient = ref({
   deadline: '',
   repo_link: '',
   project_link: ''
+})
+
+// --- SÉCURITÉ ET CHARGEMENT ---
+onMounted(() => {
+  if (user.role !== 'prestataire') {
+    alert("Accès refusé : Cet espace est réservé aux prestataires.");
+    router.push('/login');
+    return;
+  }
+  fetchClients()
 })
 
 // --- STATISTIQUES DYNAMIQUES ---
@@ -66,9 +80,7 @@ const deleteClient = async (client) => {
 }
 
 const addClient = async () => {
-  const user = JSON.parse(localStorage.getItem('user'))
-  if (!user) return alert("Session expirée, reconnectez-vous.")
-
+  if (!user.id) return alert("Session expirée, reconnectez-vous.")
   try {
     const res = await fetch('http://localhost:3000/api/clients', {
       method: 'POST',
@@ -111,7 +123,10 @@ const sendMessage = async () => {
   }
 }
 
-onMounted(fetchClients)
+const logout = () => {
+  localStorage.removeItem('user')
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -121,15 +136,23 @@ onMounted(fetchClients)
 
       <div class="flex justify-between items-center mb-10">
         <div>
-          <h1 class="text-3xl font-black text-blue-900 tracking-tight text-left">LinkClients <span class="text-blue-500 font-medium italic">Pro</span></h1>
-          <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1 text-left">Espace de Gestion Prestataire</p>
+          <h1 class="text-3xl font-black text-blue-900 tracking-tight text-left italic">LinkClients Pro</h1>
+          <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mt-1 text-left">Espace Gestion Prestataire</p>
         </div>
-        <div class="flex items-center gap-4 bg-white p-2 pr-6 rounded-2xl shadow-sm border border-blue-100">
-          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">M</div>
-          <div class="text-left">
-            <p class="text-[10px] font-black text-gray-400 uppercase leading-none">Connecté</p>
-            <p class="text-sm font-bold text-blue-900 leading-tight">Morgan @ Novity</p>
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3 bg-white p-2 pr-6 rounded-2xl shadow-sm border border-blue-100">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold">
+              {{ user.fullname?.charAt(0) || 'P' }}
+            </div>
+            <div class="text-left">
+              <p class="text-[10px] font-black text-gray-400 uppercase leading-none">Connecté</p>
+              <p class="text-sm font-bold text-blue-900 leading-tight">{{ user.fullname || 'Utilisateur' }}</p>
+              <p class="text-[10px] text-blue-400 font-medium">{{ user.email }}</p>
+            </div>
           </div>
+          <button @click="logout" class="p-2 bg-white rounded-xl shadow-sm border border-blue-100 hover:text-red-500 transition-colors" title="Déconnexion">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7" /></svg>
+          </button>
         </div>
       </div>
 
@@ -154,7 +177,7 @@ onMounted(fetchClients)
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="flex flex-col gap-2">
             <label class="text-[10px] font-black text-blue-300 uppercase ml-1">Nom du client / Entreprise</label>
-            <input v-model="newClient.name" type="text" class="bg-white/10 border border-white/10 rounded-2xl p-3.5 text-white text-sm outline-none focus:bg-white/20 transition-all" placeholder="ex: Jean Dupont (Novity)">
+            <input v-model="newClient.name" type="text" class="bg-white/10 border border-white/10 rounded-2xl p-3.5 text-white text-sm outline-none focus:bg-white/20 transition-all" placeholder="ex: Jean Dupont">
           </div>
           <div class="flex flex-col gap-2">
             <label class="text-[10px] font-black text-blue-300 uppercase ml-1">Mission</label>
@@ -208,10 +231,10 @@ onMounted(fetchClients)
                 <span class="text-sm font-bold text-gray-700">{{ c.mission || 'Détails à venir' }}</span>
                 <div class="flex gap-2">
                   <a v-if="c.repo_link" :href="c.repo_link" target="_blank" class="flex items-center gap-1.5 text-[9px] font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-md hover:bg-gray-200 transition-all uppercase">
-                    <span class="text-xs">📁</span> Code
+                    📁 Code
                   </a>
                   <a v-if="c.project_link" :href="c.project_link" target="_blank" class="flex items-center gap-1.5 text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-md hover:bg-blue-100 transition-all uppercase">
-                    <span class="text-xs">🚀</span> Live
+                    🚀 Live
                   </a>
                 </div>
               </div>
@@ -275,6 +298,7 @@ onMounted(fetchClients)
         </div>
       </div>
     </div>
+
   </div>
 </template>
 

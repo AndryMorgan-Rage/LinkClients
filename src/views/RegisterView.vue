@@ -6,8 +6,8 @@
 
       <div class="relative z-40 w-full max-w-md">
         <div class="mb-6">
-          <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tighter">LinkClients</h1>
-          <p class="text-blue-200/70 text-sm">Créez votre compte en quelques secondes.</p>
+          <h1 class="text-4xl font-extrabold text-white mb-2 tracking-tighter text-left">LinkClients</h1>
+          <p class="text-blue-200/70 text-sm text-left">Créez votre compte en quelques secondes.</p>
         </div>
 
         <div class="flex bg-white/10 p-1 rounded-2xl mb-8 border border-white/10">
@@ -26,7 +26,7 @@
 
         <form @submit.prevent="handleRegister" class="space-y-5">
           <div>
-            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest">
+            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest text-left">
               {{ form.role === 'entreprise' ? "Nom de l'entreprise" : "Nom Complet" }}
             </label>
             <input v-model="form.name" type="text" required
@@ -35,14 +35,14 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest">Email Professionnel</label>
+            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest text-left">Email Professionnel</label>
             <input v-model="form.email" type="email" required
                    class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:ring-2 focus:ring-white text-white placeholder-blue-200/30 transition-all"
                    placeholder="votre@email.com">
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest">Mot de passe</label>
+            <label class="block text-xs font-bold text-blue-200 uppercase mb-2 tracking-widest text-left">Mot de passe</label>
             <input v-model="form.password" type="password" required
                    class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl outline-none focus:ring-2 focus:ring-white text-white placeholder-blue-200/30 transition-all"
                    placeholder="••••••••">
@@ -83,6 +83,7 @@ import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
 const roles = [
   { id: 'client', label: 'Client' },
   { id: 'prestataire', label: 'Prestataire' },
@@ -93,7 +94,7 @@ const form = reactive({
   name: '',
   email: '',
   password: '',
-  role: 'prestataire' // Valeur par défaut
+  role: 'prestataire' // Défini sur prestataire par défaut comme demandé
 })
 
 const goToLogin = () => {
@@ -106,18 +107,17 @@ const handleRegister = async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        name: form.name,
+        fullname: form.name, // "fullname" doit correspondre au champ attendu par ton backend
         email: form.email,
         password: form.password,
-        role: form.role // Très important pour le dispatching côté backend
+        role: form.role
       })
     })
 
     const data = await res.json()
 
     if (res.ok) {
-      // On affiche le succès et on précise où il a été créé
-      alert(`Compte ${form.role} créé avec succès !`)
+      alert(`Compte ${form.role} créé avec succès ! Connectez-vous maintenant.`)
       goToLogin()
     } else {
       alert(data.error || "Erreur lors de l'inscription")
@@ -128,3 +128,10 @@ const handleRegister = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Ajout d'une petite animation fluide pour le changement de rôle */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+</style>
